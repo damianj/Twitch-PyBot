@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<settings>
+	<connection>
+		<server>irc.twitch.tv</server>
+		<port>6667</port>
+		<oauth>oauth:key</oauth>
+		<botname>botaccountname</botname>
+		<channel>#channelname</channel>
+	</connection>
+	<commands>
+		<cmd>
+			<trigger>:!mycommand</trigger>
+			<response>Custom response</response>
+		</cmd>
+			<cmd>
+			<trigger>:!anothercmd</trigger>
+			<response>Another response</response>
+		</cmd>
+		<cmd>
+			<trigger>:!Hello</trigger>
+			<response>Hello, ${USER}$</response>
+		</cmd>
+	</commands>
+</settings>
