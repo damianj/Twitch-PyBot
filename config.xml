@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <settings>
-	<connection>
-		<server>irc.twitch.tv</server>
-		<port>6667</port>
-		<oauth>oauth:key</oauth>
-		<botname>botaccountname</botname>
-		<channel>#channelname</channel>
-	</connection>
+	<general>
+		<server>irc.twitch.tv</server> <!-- typically irc.twitch.tv, best to leave unchanged -->
+		<port>6667</port> <!-- typically 6667, best to leave unchanged -->
+		<oauth>oauth:o8twtb61dy1f74cubpfxammbaysnqb</oauth> <!-- e.g. oauth:long_string_of_letters_and_numbers -->
+		<botname>FTW__BOT</botname> <!-- name of account/channel the bot uses -->
+		<channel>#damianjftw</channel> <!-- name of the channel you want the bot to join (e.g. #channel_name) -->
+		<commandrate>100:30</commandrate> <!-- notation is: commands:seconds (e.g. 20:30 for bots w/o mod; 100:30 for bots w/ mod) -->
+	</general>
 	<commands>
 		<cmd>
-			<trigger>:!mycommand</trigger>
-			<response>Custom response</response>
+			<trigger>:!mycommand</trigger> <!-- this is how the command is called in your chat -->
+			<response>Custom response</response> <!-- this is the text the bot replies with when the command is called -->
+			<cooldown>5</cooldown> <!-- this is how long (in seconds) users must wait before calling this command again -->
 		</cmd>
 			<cmd>
 			<trigger>:!anothercmd</trigger>
 			<response>Another response</response>
+			<cooldown>5</cooldown>
 		</cmd>
 		<cmd>
 			<trigger>:!Hello</trigger>
-			<response>Hello, ${USER}$</response>
+			<response>Hello, ${USER}$</response> <!-- ${USER}$ is replaced with the name of the person that called that command-->
+			<cooldown>5</cooldown>
 		</cmd>
 	</commands>
 </settings>
