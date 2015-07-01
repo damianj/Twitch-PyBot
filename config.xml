@@ -5,14 +5,14 @@
         <!-- typically irc.twitch.tv, best to leave unchanged -->
         <port>6667</port>
         <!-- typically 6667, best to leave unchanged -->
-        <oauth>oauth:o8twtb61dy1f74cubpfxammbaysnqb</oauth>
+        <oauth>oauth:mytoken</oauth>
         <!-- e.g. oauth:long_string_of_letters_and_numbers to get your own oauth token 
              login to your bot's twitch account and go to http://twitchapps.com/tmi -->
-        <botname>FTW__BOT</botname>
+        <botname>mybotsname</botname>
         <!-- name of account/channel the bot uses -->
-        <channel>#damianjftw</channel>
+        <channel>#mychannel</channel>
         <!-- name of the channel you want the bot to join (e.g. #channel_name) -->
-        <commandrate>100:30</commandrate>
+        <commandrate>20:30</commandrate>
         <!-- notation is: commands:seconds (e.g. 20:30 for bots w/o mod; 100:30 for bots w/ mod) -->
     </general>
     <commands>
