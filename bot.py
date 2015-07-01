@@ -149,7 +149,7 @@ class TwitchBot:
                     self.message('There are currently no global commands set up.')
 
 
-varToBool = lambda x: False if x == '0' or x != 'mod' else True
+varToBool = lambda t: False if t == '0' or any(su in t for su in ['mod', 'global_mod', 'admin', 'staff']) else True
 
 bot = TwitchBot()
 if bot.connect() and bot.authenticate() and bot.join():
@@ -163,7 +163,11 @@ if bot.connect() and bot.authenticate() and bot.join():
             raise SystemExit
         if irc_msg.find(' PRIVMSG ') != -1:
             s = irc_msg.split(';')
-            user = s[1][13:]
+            try:
+                user = s[1].strip()[13:]
+            except IndexError:
+                user = s[5].split(' :!')[1]
+
             subscriber = varToBool(s[3][11:])
             moderator = varToBool(s[5].split(':')[0][10:].replace(' ', ''))
             bot.commands(user, irc_msg)
