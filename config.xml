@@ -14,9 +14,17 @@
         <!-- name of the channel you want the bot to join (e.g. #channel_name) -->
         <commandrate>20:30</commandrate>
         <!-- notation is: commands:seconds (e.g. 20:30 for bots w/o mod; 100:30 for bots w/ mod) -->
+        <modaccess>
+            <mod>True</mod>
+            <global_mod>True</global_mod>
+            <admin>True</admin>
+            <staff>True</staff>
+        </modaccess>
+        <!-- determines who else can use mod commands (e.g. !ban, !timeout etc.) -->
     </general>
     <commands>
-        <cmd>
+        <cmd sub-only="False">
+        <!-- the sub-only field dictates whether the command is intended for subs or all users -->
             <trigger>:!mycommand</trigger>
             <!-- this is how the command is called in your chat -->
             <response>Custom response</response>
@@ -24,12 +32,12 @@
             <cooldown>5</cooldown>
             <!-- this is how long (in seconds) users must wait before calling this command again -->
         </cmd>
-        <cmd>
+        <cmd sub-only="False">
             <trigger>:!anothercmd</trigger>
             <response>Another response</response>
             <cooldown>5</cooldown>
         </cmd>
-        <cmd>
+        <cmd sub-only="False">
             <trigger>:!Hello</trigger>
             <response>Hello, ${USER}$</response>
             <!-- ${USER}$ is replaced with the name of the person that called that command-->
