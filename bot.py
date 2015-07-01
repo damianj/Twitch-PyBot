@@ -113,7 +113,7 @@ class TwitchBot:
         if (time() - self.global_cmd_info['last_use']) > self.settings.command_limit['time_limit']:
             self.global_cmd_info['count'] = 0
 
-        if self.global_cmd_info['count'] >= self.settings.command_limit['cmd_limit']\
+        if self.global_cmd_info['count'] >= self.settings.command_limit['cmd_limit'] \
                 and (time() - self.global_cmd_info['last_use']) < self.settings.command_limit['time_limit']:
             pass  # Do nothing if you've reached the global command rate limit
         else:
@@ -144,7 +144,7 @@ class TwitchBot:
                         self.message('{0}'.format(cmd_text))
                         self.user_commands[cmd]['last_use'] = time()
                     elif self.on_cooldown(cmd):
-                        pass    # Optional section to send message when commands are on cooldown
+                        pass  # Optional section to send message when commands are on cooldown
                 else:
                     self.message('There are currently no global commands set up.')
 
