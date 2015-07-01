@@ -4,27 +4,33 @@ from time import time
 from socket import socket
 
 
-class ConnectionSpec(object):
-    def __init__(self, host=None, port=6667, oauth=None, bot_name=None, channel=None, command_limit=None):
+class GeneralSettings(object):
+    def __init__(self, host=None, port=None, oauth=None, bot_name=None,
+                 channel=None, command_limit=None, master_access=None):
         self.host = host
         self.port = port
         self.oauth = oauth
         self.bot_name = bot_name
         self.channel = channel
         self.command_limit = command_limit
+        self.master_access = master_access
 
 
 class ParseXML:
     @staticmethod
-    def get_spec(file):
+    def get_settings(file):
         conn_info = XML_handler.parse(file).getroot().find('general')
-        return ConnectionSpec(conn_info.find('server').text,
-                              int(conn_info.find('port').text),
-                              conn_info.find('oauth').text,
-                              conn_info.find('botname').text,
-                              conn_info.find('channel').text,
-                              {'cmd_limit': int(conn_info.find('commandrate').text.split(':')[0]),
-                               'time_limit': float(conn_info.find('commandrate').text.split(':')[1])})
+        return GeneralSettings(conn_info.find('server').text,
+                               int(conn_info.find('port').text),
+                               conn_info.find('oauth').text,
+                               conn_info.find('botname').text,
+                               conn_info.find('channel').text,
+                               {'cmd_limit': int(conn_info.find('commandrate').text.split(':')[0]),
+                                'time_limit': float(conn_info.find('commandrate').text.split(':')[1])},
+                               {'mod': str_to_bool(conn_info.find('modaccess').find('mod').text),
+                                'global_mod': str_to_bool(conn_info.find('modaccess').find('global_mod').text),
+                                'admin': str_to_bool(conn_info.find('modaccess').find('admin').text),
+                                'staff': str_to_bool(conn_info.find('modaccess').find('staff').text)})
 
     @staticmethod
     def get_commands(file):
@@ -33,7 +39,8 @@ class ParseXML:
         for cmd in commands.findall('cmd'):
             cmd_dict[cmd.find('trigger').text.lower()] = {'response': cmd.find('response').text,
                                                           'cooldown': float(cmd.find('cooldown').text),
-                                                          'last_use': float(cmd.find('cooldown').text)}
+                                                          'last_use': float(cmd.find('cooldown').text),
+                                                          'sub_only': str_to_bool(cmd.get('sub-only'))}
         return cmd_dict if cmd_dict != {} else None
 
 
@@ -50,9 +57,8 @@ class TwitchBot:
                       '#############################################################\n\n')
                 raise SystemExit
         self.irc_socket = socket()
-        self.settings = ParseXML.get_spec(self.config_file)
+        self.settings = ParseXML.get_settings(self.config_file)
         self.channel = None
-        self.master_commands = [':!ban', ':!unban', ':!timeout', ':!kill {0}'.format(self.settings.bot_name.lower())]
         self.user_commands = ParseXML.get_commands(self.config_file)
         self.global_cmd_info = {'count': 0, 'last_use': 0.0}
 
@@ -109,22 +115,25 @@ class TwitchBot:
         except KeyError:
             return True
 
-    def commands(self, username, message):
+    def commands(self, username, message, is_sub, is_mod):
         if (time() - self.global_cmd_info['last_use']) > self.settings.command_limit['time_limit']:
             self.global_cmd_info['count'] = 0
 
         if self.global_cmd_info['count'] >= self.settings.command_limit['cmd_limit'] \
                 and (time() - self.global_cmd_info['last_use']) < self.settings.command_limit['time_limit']:
-            pass  # Do nothing if you've reached the global command rate limit
-        else:
-            cmd = ' '.join(message.split()[4:]).strip().lower()
-            if any(c in cmd for c in self.master_commands) and username.lower() == self.channel.strip('#'):
+            return  # Do nothing if you've reached the global command rate limit
+
+        cmd = ' '.join(message.split()[4:]).strip().lower()
+        if ':!' in cmd:
+            if username.lower() == self.channel.strip('#') or is_mod:
                 if ':!ban ' in cmd:
                     name = ''.join(message.split()[5:])
                     self.ban(name)
+                    return
                 if ':!unban ' in cmd:
                     name = ''.join(message.split()[5:])
                     self.unban(name)
+                    return
                 if ':!timeout ' in cmd:
                     try:
                         t = int(''.join(message.split()[5:6]))
@@ -133,23 +142,22 @@ class TwitchBot:
                         t = 300
                         name = ''.join(message.split()[5:])
                     self.timeout(name, t)
+                    return
                 if ':!kill {0}'.format(self.settings.bot_name.lower()) in cmd:
                     self.message('Goodbye. MrDestructoid')
                     self.irc_socket.close()
                     raise SystemExit
-            elif ':!' in cmd:
-                if self.user_commands is not None:
-                    if cmd in self.user_commands and not self.on_cooldown(cmd):
-                        cmd_text = self.user_commands[cmd]['response'].replace('${USER}$', username)
-                        self.message('{0}'.format(cmd_text))
-                        self.user_commands[cmd]['last_use'] = time()
-                    elif self.on_cooldown(cmd):
-                        pass  # Optional section to send message when commands are on cooldown
-                else:
-                    self.message('There are currently no global commands set up.')
+
+            if not self.on_cooldown(cmd) and bool(self.user_commands):
+                if is_sub and self.user_commands[cmd]['sub_only']:
+                    self.message('{0}'.format(self.user_commands[cmd]['response'].replace('${USER}$', username)))
+                    self.user_commands[cmd]['last_use'] = time()
+                elif not self.user_commands[cmd]['sub_only']:
+                    self.message('{0}'.format(self.user_commands[cmd]['response'].replace('${USER}$', username)))
+                    self.user_commands[cmd]['last_use'] = time()
 
 
-varToBool = lambda t: False if t == '0' or any(su in t for su in ['mod', 'global_mod', 'admin', 'staff']) else True
+str_to_bool = lambda x, y = (): True if x.lower() in ('yes', 'true', 't', 'y', '1') or x in y else False
 
 bot = TwitchBot()
 if bot.connect() and bot.authenticate() and bot.join():
@@ -166,11 +174,8 @@ if bot.connect() and bot.authenticate() and bot.join():
             try:
                 user = s[1].strip()[13:]
             except IndexError:
-                user = s[5].split(' :!')[1]
-
-            subscriber = varToBool(s[3][11:])
-            moderator = varToBool(s[5].split(':')[0][10:].replace(' ', ''))
-            bot.commands(user, irc_msg)
-
+                user = s[5].split(':')[1].split('!')[0]
+            bot.commands(user, irc_msg, str_to_bool(s[3][11:]),
+                         str_to_bool(s[5].split(':')[0][10:].replace(' ', ''), bot.settings.master_access))
         if irc_msg.find('PING :') != -1:
             bot.ping(irc_msg.split()[1])
