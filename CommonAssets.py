@@ -17,3 +17,11 @@ class GeneralFunctions:
             return True
         else:
             return False
+
+    @classmethod
+    def process_cmd(cls, l: list):
+        try:
+            return {'response': str(l[2]), 'cooldown': float(l[3]),
+                    'last_use': float(l[3]), 'sub_only': cls.str_to_bool(l[4])}
+        except (ValueError, TypeError):
+            return False
