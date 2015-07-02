@@ -1,4 +1,5 @@
-from XMLParser import ParseXML
+import JSONTools
+from pprint import PrettyPrinter
 from CommonAssets import GeneralFunctions as Fn
 from glob import glob as get_file
 from time import time
@@ -8,19 +9,18 @@ from socket import socket
 class TwitchBot:
     def __init__(self):
         try:
-            self.config_file = get_file('config.xml')[0]
+            self.config_file = get_file('config.json')[0]
         except IndexError:
             try:
-                self.config_file = get_file('*.xml')[0]
+                self.config_file = get_file('*.json')[0]
             except IndexError:
                 print('###########################[ERROR]###########################\n'
-                      '###[NO CONFIG OR .XML FILE FOUND IN THE CURRENT DIRECTORY]###\n'
+                      '####[NO CONFIG/.JSON FILE FOUND IN THE CURRENT DIRECTORY]####\n'
                       '#############################################################\n\n')
                 raise SystemExit
         self.irc_socket = socket()
-        self.settings = ParseXML.get_settings(self.config_file)
-        self.channel = None
-        self.user_commands = ParseXML.get_commands(self.config_file)
+        self.settings = JSONTools.ParseJSON.get_settings(self.config_file)
+        self.user_commands = JSONTools.ParseJSON.get_commands(self.config_file)
         self.global_cmd_tracker = {'count': 0, 'last_use': 0.0}
 
     def connect(self):
@@ -40,10 +40,7 @@ class TwitchBot:
         return True
 
     def join(self):
-        if self.settings.channel[0] != '#':
-            self.channel = '#{0}'.format(self.settings.channel)
-        self.channel = self.settings.channel.lower()
-        self.irc_socket.send(bytes('JOIN {0}\r\n'.format(self.channel), 'UTF-8'))
+        self.irc_socket.send(bytes('JOIN {0}\r\n'.format(self.settings.channel), 'UTF-8'))
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/commands\r\n', 'UTF-8'))
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
         return True
@@ -53,7 +50,7 @@ class TwitchBot:
         return True
 
     def message(self, message):
-        self.irc_socket.send(bytes('PRIVMSG {0} :{1}\r\n'.format(self.channel, message), 'UTF-8'))
+        self.irc_socket.send(bytes('PRIVMSG {0} :{1}\r\n'.format(self.settings.channel, message), 'UTF-8'))
         self.global_cmd_tracker['count'] += 1
         self.global_cmd_tracker['last_use'] = time()
         return True
@@ -68,6 +65,10 @@ class TwitchBot:
 
     def timeout(self, u, t):
         self.message('/timeout {0} {1}'.format(u, t))
+        return True
+
+    def add_cmd(self, c):
+        XMLTools.ModifyXML.add_command(self.config_file, c)
         return True
 
     def on_cooldown(self, c):
@@ -104,6 +105,40 @@ class TwitchBot:
                         name = ''.join(message.split()[5:])
                     self.timeout(name, t)
                     return
+                if ':!addcmd' in cmd:
+                    cmd_args = cmd.strip().split('|')
+                    if len(cmd_args) != 5:
+                        self.message('Incorrect syntax: !addcmd|!cmdname|response text|5|False\n'
+                                     '(number = cooldown for the command, True/False designates sub-only status)')
+                    else:
+                        if cmd_args[1] in self.user_commands:
+                            self.message('This command already exists.')
+                        else:
+                            try:
+                                self.user_commands[':{0}'.format(cmd_args[1].lower())] = {
+                                    'response': str(cmd_args[2]),
+                                    'cooldown': float(cmd_args[3]),
+                                    'last_use': float(cmd_args[3]),
+                                    'sub_only': Fn.str_to_bool(cmd_args[4])}
+                                JSONTools.ModifyJSON.add_command(self.config_file, cmd_args[1].lower(),
+                                                                 dict.copy(self.user_commands[':{0}'.format(cmd_args[1].lower())]))
+                            except (KeyError, ValueError):
+                                self.message('Couldn\'t create the command. Please check the syntax and arguments.')
+                if '!remcmd ' in cmd:
+                    try:
+                        cmd_split = cmd.strip().split()
+                        if len(cmd_split) == 2:
+                            cmd_name = ':{0}'.format(cmd_split[1])
+                            if cmd_name in self.user_commands:
+                                self.user_commands.pop(cmd_name)
+                                JSONTools.ModifyJSON.remove_command(self.config_file, cmd_name)
+                            else:
+                                self.message('Command not found. Check spelling and make sure it exists.')
+                        else:
+                            raise IndexError
+                    except IndexError:
+                        self.message('Incorrect syntax: !remcmd !commandname')
+
                 if ':!kill {0}'.format(self.settings.bot_name.lower()) in cmd:
                     self.message('Goodbye. MrDestructoid')
                     self.irc_socket.close()
@@ -119,6 +154,9 @@ class TwitchBot:
 
 
 bot = TwitchBot()
+pp = PrettyPrinter(indent=4)
+pp.pprint(bot.settings.master_access)
+pp.pprint(bot.user_commands)
 if bot.connect() and bot.authenticate() and bot.join():
     while True:
         irc_msg = bot.irc_socket.recv(4096).decode("UTF-8").strip('\n\r')
