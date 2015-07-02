@@ -1,0 +1,41 @@
+{
+  "commands": {
+    ":!Hello": {
+      "sub_only": false,
+      "cooldown": 5,
+      "response": "Hello ${USER}$"
+    },
+    ":!mycommand": {
+      "sub_only": false,
+      "cooldown": 5,
+      "response": "Custom response"
+    },
+    ":!anothercmd": {
+      "sub_only": false,
+      "cooldown": 5,
+      "response": "Another response"
+    },
+    ":!test": {
+      "sub_only": true,
+      "cooldown": 5.0,
+      "response": "this is a test"
+    }
+  },
+  "general": {
+    "channel": "#damianjftw",
+    "special_access": {
+      "mod": true,
+      "admin": true,
+      "staff": true,
+      "global_mod": true
+    },
+    "commandrate": {
+      "time_limit": 30,
+      "cmd_limit": 100
+    },
+    "oauth": "oauth:zoqhuv51kj5kj363fb98xhg8wqt2pb",
+    "server": "irc.twitch.tv",
+    "botname": "FTW__BOT",
+    "port": 6667
+  }
+}
