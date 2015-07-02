@@ -1,48 +1,8 @@
-import xml.etree.ElementTree as XML_handler
+from XMLParser import ParseXML
+from CommonAssets import GeneralFunctions as Fn
 from glob import glob as get_file
 from time import time
 from socket import socket
-
-
-class GeneralSettings(object):
-    def __init__(self, host=None, port=None, oauth=None, bot_name=None,
-                 channel=None, command_limit=None, master_access=None):
-        self.host = host
-        self.port = port
-        self.oauth = oauth
-        self.bot_name = bot_name
-        self.channel = channel
-        self.command_limit = command_limit
-        self.master_access = master_access
-
-
-class ParseXML:
-    @staticmethod
-    def get_settings(file):
-        conn_info = XML_handler.parse(file).getroot().find('general')
-        return GeneralSettings(conn_info.find('server').text,
-                               int(conn_info.find('port').text),
-                               conn_info.find('oauth').text,
-                               conn_info.find('botname').text,
-                               conn_info.find('channel').text,
-                               {'cmd_limit': int(conn_info.find('commandrate').text.split(':')[0]),
-                                'time_limit': float(conn_info.find('commandrate').text.split(':')[1])},
-                               {'mod': str_to_bool(conn_info.find('modaccess').find('mod').text),
-                                'global_mod': str_to_bool(conn_info.find('modaccess').find('global_mod').text),
-                                'admin': str_to_bool(conn_info.find('modaccess').find('admin').text),
-                                'staff': str_to_bool(conn_info.find('modaccess').find('staff').text),
-                                conn_info.find('channel').text.strip('#').lower(): True})
-
-    @staticmethod
-    def get_commands(file):
-        cmd_dict = {}
-        commands = XML_handler.parse(file).getroot().find('commands')
-        for cmd in commands.findall('cmd'):
-            cmd_dict[cmd.find('trigger').text.lower()] = {'response': cmd.find('response').text,
-                                                          'cooldown': float(cmd.find('cooldown').text),
-                                                          'last_use': float(cmd.find('cooldown').text),
-                                                          'sub_only': str_to_bool(cmd.get('sub-only'))}
-        return cmd_dict if cmd_dict != {} else None
 
 
 class TwitchBot:
@@ -158,8 +118,6 @@ class TwitchBot:
                     self.user_commands[cmd]['last_use'] = time()
 
 
-str_to_bool = lambda x, y = (): True if x.lower() in ('yes', 'true', 't', 'y', '1') or x in y else False
-
 bot = TwitchBot()
 if bot.connect() and bot.authenticate() and bot.join():
     while True:
@@ -177,9 +135,9 @@ if bot.connect() and bot.authenticate() and bot.join():
             except IndexError:
                 user = s[5].split(':')[1].split('!')[0]
             bot.commands(user, irc_msg,
-                         str_to_bool(s[3][11:]),
-                         str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
-                                     if s[5].split(':')[0][10:].replace(' ', '') != ''
-                                     else user.lower(), bot.settings.master_access))
+                         Fn.str_to_bool(s[3][11:]),
+                         Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
+                                        if s[5].split(':')[0][10:].replace(' ', '') != ''
+                                        else user.lower(), bot.settings.master_access))
         if irc_msg.find('PING :') != -1:
             bot.ping(irc_msg.split()[1])
