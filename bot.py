@@ -30,7 +30,8 @@ class ParseXML:
                                {'mod': str_to_bool(conn_info.find('modaccess').find('mod').text),
                                 'global_mod': str_to_bool(conn_info.find('modaccess').find('global_mod').text),
                                 'admin': str_to_bool(conn_info.find('modaccess').find('admin').text),
-                                'staff': str_to_bool(conn_info.find('modaccess').find('staff').text)})
+                                'staff': str_to_bool(conn_info.find('modaccess').find('staff').text),
+                                conn_info.find('channel').text.strip('#').lower(): True})
 
     @staticmethod
     def get_commands(file):
@@ -60,7 +61,7 @@ class TwitchBot:
         self.settings = ParseXML.get_settings(self.config_file)
         self.channel = None
         self.user_commands = ParseXML.get_commands(self.config_file)
-        self.global_cmd_info = {'count': 0, 'last_use': 0.0}
+        self.global_cmd_tracker = {'count': 0, 'last_use': 0.0}
 
     def connect(self):
         try:
@@ -93,8 +94,8 @@ class TwitchBot:
 
     def message(self, message):
         self.irc_socket.send(bytes('PRIVMSG {0} :{1}\r\n'.format(self.channel, message), 'UTF-8'))
-        self.global_cmd_info['count'] += 1
-        self.global_cmd_info['last_use'] = time()
+        self.global_cmd_tracker['count'] += 1
+        self.global_cmd_tracker['last_use'] = time()
         return True
 
     def ban(self, u):
@@ -116,16 +117,16 @@ class TwitchBot:
             return True
 
     def commands(self, username, message, is_sub, is_mod):
-        if (time() - self.global_cmd_info['last_use']) > self.settings.command_limit['time_limit']:
-            self.global_cmd_info['count'] = 0
+        if (time() - self.global_cmd_tracker['last_use']) > self.settings.command_limit['time_limit']:
+            self.global_cmd_tracker['count'] = 0
 
-        if self.global_cmd_info['count'] >= self.settings.command_limit['cmd_limit'] \
-                and (time() - self.global_cmd_info['last_use']) < self.settings.command_limit['time_limit']:
+        if self.global_cmd_tracker['count'] >= self.settings.command_limit['cmd_limit'] \
+                and (time() - self.global_cmd_tracker['last_use']) < self.settings.command_limit['time_limit']:
             return  # Do nothing if you've reached the global command rate limit
 
         cmd = ' '.join(message.split()[4:]).strip().lower()
         if ':!' in cmd:
-            if username.lower() == self.channel.strip('#') or is_mod:
+            if is_mod:
                 if ':!ban ' in cmd:
                     name = ''.join(message.split()[5:])
                     self.ban(name)
@@ -149,7 +150,7 @@ class TwitchBot:
                     raise SystemExit
 
             if not self.on_cooldown(cmd) and bool(self.user_commands):
-                if is_sub and self.user_commands[cmd]['sub_only']:
+                if is_sub and self.user_commands[cmd]['sub_only'] or is_mod:
                     self.message('{0}'.format(self.user_commands[cmd]['response'].replace('${USER}$', username)))
                     self.user_commands[cmd]['last_use'] = time()
                 elif not self.user_commands[cmd]['sub_only']:
@@ -175,7 +176,10 @@ if bot.connect() and bot.authenticate() and bot.join():
                 user = s[1].strip()[13:]
             except IndexError:
                 user = s[5].split(':')[1].split('!')[0]
-            bot.commands(user, irc_msg, str_to_bool(s[3][11:]),
-                         str_to_bool(s[5].split(':')[0][10:].replace(' ', ''), bot.settings.master_access))
+            bot.commands(user, irc_msg,
+                         str_to_bool(s[3][11:]),
+                         str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
+                                     if s[5].split(':')[0][10:].replace(' ', '') != ''
+                                     else user.lower(), bot.settings.master_access))
         if irc_msg.find('PING :') != -1:
             bot.ping(irc_msg.split()[1])
