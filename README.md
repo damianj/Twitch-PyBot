@@ -11,9 +11,9 @@ This project is still in it's infancy. You'll need minimal knowledge of editing 
   - Set custom cooldown times (*i.e.* the time necessary between each successive call of the command)
 - Can also use the !addcmd and !remcmd commands when the bot is in an IRC channel to add and remove commands from the JSON file
   - **!addcmd|!examplecommand|Example response for the command|5|False**
-    - *[call to function]|[new command name]|[response text]|[cooldown time (sec)]|[sub-only command]*
+    - *[call command]|[command name]|[response text]|[cooldown (seconds)]|[sub-only command]*
   - **!remcmd !examplecommand**
-    - *[call to function] [name of the command to remove]*
+    - *[call command] [name of the command to remove]*
 - Designate who can access your master commands (*i.e.* !ban, !unban, etc.)
   - Can pick and choose from mods, global mods, admins, and staff
 - Relatively easy to configure. Simply make a twitch account for your bot and get your oauth token
