@@ -11,7 +11,7 @@ This project is still in it's infancy. You'll need minimal knowledge of editing 
   - Set custom cooldown times (*i.e.* the time necessary between each successive call of the command)
 - Can also use the !addcmd and !remcmd commands when the bot is in an IRC channel to add and remove commands from the JSON file
   - **!addcmd|!examplecommand|Example response for the command|5|False**
-    - *[call to function|name of new command|text displayed when command is called|cooldown for the command|sub-only command or not]*
+    - *[call to function]|[new command name]|[response text]|[cooldown time (sec)]|[sub-only command]*
   - **!remcmd !examplecommand**
     - *[call to function] [name of the command to remove]*
 - Designate who can access your master commands (*i.e.* !ban, !unban, etc.)
