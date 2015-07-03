@@ -1,6 +1,6 @@
 import JSONTools
-from pprint import PrettyPrinter
 from CommonAssets import GeneralFunctions as Fn
+from CommonAssets import RestrictedCommands
 from glob import glob as get_file
 from time import time
 from socket import socket
@@ -21,6 +21,7 @@ class TwitchBot:
         self.irc_socket = socket()
         self.settings = JSONTools.ParseJSON.get_settings(self.config_file)
         self.user_commands = JSONTools.ParseJSON.get_commands(self.config_file)
+        self.master_commands = RestrictedCommands()
         self.global_cmd_tracker = {'count': 0, 'last_use': 0.0}
 
     def connect(self):
@@ -115,7 +116,7 @@ class TwitchBot:
 
         cmd = ' '.join(message.split()[4:]).strip().lower()
         if ':!' in cmd:
-            if is_mod:
+            if is_mod and any(c in cmd for c in self.master_commands.cmd_list):
                 if ':!ban ' in cmd:
                     name = ''.join(message.split()[5:])
                     self.ban(name)
@@ -133,7 +134,7 @@ class TwitchBot:
                         name = ''.join(message.split()[5:])
                     self.timeout(name, t)
                     return
-                if ':!addcmd' in cmd:
+                if ':!addcmd|' in cmd:
                     self.add_cmd(cmd.strip().split('|'))
                     return
                 if '!remcmd ' in cmd:
@@ -155,9 +156,6 @@ class TwitchBot:
 
 
 bot = TwitchBot()
-pp = PrettyPrinter(indent=4)
-pp.pprint(bot.settings.master_access)
-pp.pprint(bot.user_commands)
 if bot.connect() and bot.authenticate() and bot.join():
     while True:
         irc_msg = bot.irc_socket.recv(4096).decode("UTF-8").strip('\n\r')
@@ -173,10 +171,9 @@ if bot.connect() and bot.authenticate() and bot.join():
                 user = s[1].strip()[13:]
             except IndexError:
                 user = s[5].split(':')[1].split('!')[0]
-            bot.command(user, irc_msg,
-                         Fn.str_to_bool(s[3][11:]),
-                         Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
-                                        if s[5].split(':')[0][10:].replace(' ', '') != ''
-                                        else user.lower(), bot.settings.master_access))
+            bot.command(user, irc_msg, Fn.str_to_bool(s[3][11:]),
+                        Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
+                                       if s[5].split(':')[0][10:].replace(' ', '') != ''
+                                       else user.lower(), bot.settings.master_access))
         if irc_msg.find('PING :') != -1:
             bot.ping(irc_msg.split()[1])
