@@ -1,3 +1,8 @@
+class RestrictedCommands(object):
+    def __init__(self):
+        self.cmd_list = (':!ban ', ':!unban ', ':!timeout ', ':!addcmd|', '!remcmd ', ':!kill ')
+
+
 class GeneralSettings(object):
     def __init__(self, host=None, port=None, oauth=None, bot_name=None,
                  channel=None, command_limit=None, master_access=None):
