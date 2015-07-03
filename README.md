@@ -20,6 +20,6 @@ This project is still in it's infancy. You'll need minimal knowledge of editing 
 
 #Requirements
 - Python 3.4 or higher
-- Basic JSON knowledge to handle and edit the config file
+- Basic JSON knowledge to handle and edit the config file. Plenty of online editors can help you get started.
 - Python programming knowledge if you want to hard code your own custom feature into the bot.
 - Run it on the computer that you stream on, or get a free shell account and run the bot from there.
