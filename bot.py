@@ -68,8 +68,36 @@ class TwitchBot:
         return True
 
     def add_cmd(self, c):
-        XMLTools.ModifyXML.add_command(self.config_file, c)
-        return True
+        if len(c) != 5:
+            self.message('Incorrect syntax: !addcmd|!cmdname|response text|5|False\n'
+                         '(number = cooldown for the command, True/False designates sub-only status)')
+        elif c[1] in self.user_commands:
+            self.message('This command already exists.')
+        else:
+            try:
+                self.user_commands[':{0}'.format(c[1].lower())] = {
+                    'response': str(c[2]),
+                    'cooldown': float(c[3]),
+                    'last_use': float(c[3]),
+                    'sub_only': Fn.str_to_bool(c[4])}
+                JSONTools.ModifyJSON.add_command(self.config_file, c[1].lower(),
+                                                 dict.copy(self.user_commands[':{0}'.format(c[1].lower())]))
+            except (KeyError, ValueError):
+                self.message('Couldn\'t create the command. Please check the syntax and arguments.')
+
+    def rem_cmd(self, c):
+        try:
+            if len(c) == 2:
+                cmd_name = ':{0}'.format(c[1])
+                if cmd_name in self.user_commands:
+                    self.user_commands.pop(cmd_name)
+                    JSONTools.ModifyJSON.remove_command(self.config_file, cmd_name)
+                else:
+                    self.message('Command not found. Check spelling and make sure it exists.')
+            else:
+                raise IndexError
+        except IndexError:
+            self.message('Incorrect syntax: !remcmd !commandname')
 
     def on_cooldown(self, c):
         try:
@@ -77,7 +105,7 @@ class TwitchBot:
         except KeyError:
             return True
 
-    def commands(self, username, message, is_sub, is_mod):
+    def command(self, username, message, is_sub, is_mod):
         if (time() - self.global_cmd_tracker['last_use']) > self.settings.command_limit['time_limit']:
             self.global_cmd_tracker['count'] = 0
 
@@ -106,38 +134,11 @@ class TwitchBot:
                     self.timeout(name, t)
                     return
                 if ':!addcmd' in cmd:
-                    cmd_args = cmd.strip().split('|')
-                    if len(cmd_args) != 5:
-                        self.message('Incorrect syntax: !addcmd|!cmdname|response text|5|False\n'
-                                     '(number = cooldown for the command, True/False designates sub-only status)')
-                    else:
-                        if cmd_args[1] in self.user_commands:
-                            self.message('This command already exists.')
-                        else:
-                            try:
-                                self.user_commands[':{0}'.format(cmd_args[1].lower())] = {
-                                    'response': str(cmd_args[2]),
-                                    'cooldown': float(cmd_args[3]),
-                                    'last_use': float(cmd_args[3]),
-                                    'sub_only': Fn.str_to_bool(cmd_args[4])}
-                                JSONTools.ModifyJSON.add_command(self.config_file, cmd_args[1].lower(),
-                                                                 dict.copy(self.user_commands[':{0}'.format(cmd_args[1].lower())]))
-                            except (KeyError, ValueError):
-                                self.message('Couldn\'t create the command. Please check the syntax and arguments.')
+                    self.add_cmd(cmd.strip().split('|'))
+                    return
                 if '!remcmd ' in cmd:
-                    try:
-                        cmd_split = cmd.strip().split()
-                        if len(cmd_split) == 2:
-                            cmd_name = ':{0}'.format(cmd_split[1])
-                            if cmd_name in self.user_commands:
-                                self.user_commands.pop(cmd_name)
-                                JSONTools.ModifyJSON.remove_command(self.config_file, cmd_name)
-                            else:
-                                self.message('Command not found. Check spelling and make sure it exists.')
-                        else:
-                            raise IndexError
-                    except IndexError:
-                        self.message('Incorrect syntax: !remcmd !commandname')
+                    self.rem_cmd(cmd.strip().split())
+                    return
 
                 if ':!kill {0}'.format(self.settings.bot_name.lower()) in cmd:
                     self.message('Goodbye. MrDestructoid')
@@ -172,7 +173,7 @@ if bot.connect() and bot.authenticate() and bot.join():
                 user = s[1].strip()[13:]
             except IndexError:
                 user = s[5].split(':')[1].split('!')[0]
-            bot.commands(user, irc_msg,
+            bot.command(user, irc_msg,
                          Fn.str_to_bool(s[3][11:]),
                          Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
                                         if s[5].split(':')[0][10:].replace(' ', '') != ''
