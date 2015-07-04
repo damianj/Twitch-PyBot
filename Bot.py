@@ -153,7 +153,7 @@ if bot.connect() and bot.authenticate() and bot.join():
                         Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
                                        if s[5].split(':')[0][10:].replace(' ', '') != ''
                                        else user.lower(), bot.settings.master_access))
-        elif 'PING :' in irc_msg:
+        elif 'PING :tmi.twitch.tv' in irc_msg:
             bot.ping(irc_msg.split()[1])
         elif ' NOTICE * :Login unsuccessful' in irc_msg:
             print('###########################[ERROR]###########################\n'
