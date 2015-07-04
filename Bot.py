@@ -155,7 +155,7 @@ if bot.connect() and bot.authenticate() and bot.join():
                                        else user.lower(), bot.settings.master_access))
         elif 'PING :' in irc_msg:
             bot.ping(irc_msg.split()[1])
-        elif irc_msg.find(' NOTICE * :Login unsuccessful') != -1:
+        elif ' NOTICE * :Login unsuccessful' in irc_msg:
             print('###########################[ERROR]###########################\n'
                   '##########[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]##########\n'
                   '#############################################################\n\n')
