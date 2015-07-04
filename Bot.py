@@ -140,10 +140,13 @@ class TwitchBot:
 
 bot = TwitchBot()
 if bot.connect() and bot.authenticate() and bot.join():
+    msg_map = (' PRIVMSG {0} :'.format(bot.settings.channel),
+               'PING :tmi.twitch.tv',
+               ':tmi.twitch.tv NOTICE * :Login unsuccessful')
     while True:
         irc_msg = bot.irc_socket.recv(4096).decode("UTF-8").strip('\n\r')
         print(irc_msg)
-        if ' PRIVMSG ' in irc_msg:
+        if msg_map[0] in irc_msg:
             s = irc_msg.split(';')
             try:
                 user = s[1].strip()[13:]
@@ -153,9 +156,9 @@ if bot.connect() and bot.authenticate() and bot.join():
                         Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
                                        if s[5].split(':')[0][10:].replace(' ', '') != ''
                                        else user.lower(), bot.settings.master_access))
-        elif 'PING :tmi.twitch.tv' in irc_msg:
+        elif msg_map[1] in irc_msg:
             bot.ping(irc_msg.split()[1])
-        elif ' NOTICE * :Login unsuccessful' in irc_msg:
+        elif msg_map[2] in irc_msg:
             print('###########################[ERROR]###########################\n'
                   '##########[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]##########\n'
                   '#############################################################\n\n')
