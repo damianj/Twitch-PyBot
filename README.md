@@ -1,7 +1,7 @@
 # Twitch PyBot
 A bot scripted in Python for use on personal twitch channels. It uses a JSON file to load in all it needs to know to get set up, this file also stores the custom commands the user can assign to it.
 
-# Setup and (Lack of) Documentation
+# Getting started
 This project is still in it's infancy. You'll need minimal knowledge of editing and handling .json files. If you wan't to add features you'll need to know how to program things in Python. As of now there is no documentation.
 
 # Features
