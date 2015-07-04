@@ -146,7 +146,7 @@ class TwitchBot:
                     self.irc_socket.close()
                     raise SystemExit
 
-            if not self.on_cooldown(cmd) and bool(self.user_commands):
+            elif not self.on_cooldown(cmd) and bool(self.user_commands):
                 if is_sub and self.user_commands[cmd]['sub_only'] or is_mod:
                     self.message('{0}'.format(self.user_commands[cmd]['response'].replace('${USER}$', username)))
                     self.user_commands[cmd]['last_use'] = time()
