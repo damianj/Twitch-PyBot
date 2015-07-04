@@ -1,6 +1,5 @@
 import JSONTools
-from CommonAssets import GeneralFunctions as Fn
-from CommonAssets import RestrictedCommands
+from CommonAssets import GeneralFunctions as Fn, RestrictedCommands
 from glob import glob as get_file
 from time import time
 from socket import socket
@@ -29,9 +28,9 @@ class TwitchBot:
             self.irc_socket.connect((self.settings.host, self.settings.port))
             return True
         except (OSError, TimeoutError):
-            print('#########################[ERROR]#########################\n'
-                  '###[VERIFY THAT THE SERVER & PORT NUMBERS ARE CORRECT]###\n'
-                  '#########################################################\n\n')
+            print('###########################[ERROR]###########################\n'
+                  '#####[VERIFY THAT THE SERVER & PORT NUMBERS ARE CORRECT]#####\n'
+                  '#############################################################\n\n')
             return False
 
     def authenticate(self):
@@ -41,6 +40,7 @@ class TwitchBot:
         return True
 
     def join(self):
+        self.irc_socket.send(bytes('CAP REQ :twitch.tv/membership\r\n', 'UTF-8'))
         self.irc_socket.send(bytes('JOIN {0}\r\n'.format(self.settings.channel), 'UTF-8'))
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/commands\r\n', 'UTF-8'))
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
@@ -161,9 +161,9 @@ if bot.connect() and bot.authenticate() and bot.join():
         irc_msg = bot.irc_socket.recv(4096).decode("UTF-8").strip('\n\r')
         print(irc_msg)
         if irc_msg.find(' NOTICE * :Login unsuccessful') != -1:
-            print('####################[ERROR]####################\n'
-                  '###[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]###\n'
-                  '###############################################\n\n')
+            print('###########################[ERROR]###########################\n'
+                  '##########[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]##########\n'
+                  '#############################################################\n\n')
             raise SystemExit
         if irc_msg.find(' PRIVMSG ') != -1:
             s = irc_msg.split(';')
