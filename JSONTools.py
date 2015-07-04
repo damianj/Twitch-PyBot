@@ -1,12 +1,20 @@
-import json
+from urllib import request as url_request, error as url_err
 from CommonAssets import GeneralSettings
 from itertools import chain
+from pprint import PrettyPrinter as pp
+import json
 
 class ParseJSON:
-    @staticmethod
-    def get_settings(file):
+    @classmethod
+    def get_settings(cls, file):
         with open(file, 'r') as fp:
             settings = json.load(fp)['general']
+            print('############################################################\n'
+                  '#######################[BOT SETTINGS]#######################\n'
+                  '############################################################')
+            pp().pprint(settings)
+            print('\n')
+            cls.channel_check(settings['channel'].strip('# ').lower())
             return GeneralSettings(settings['server'].strip(),
                                    settings['port'],
                                    settings['oauth'].strip(),
@@ -28,7 +36,28 @@ class ParseJSON:
                 d[k.lower()].update({'cooldown': float(d[k.lower()]['cooldown'])})
                 d[k.lower()].update({'cooldown': float(d[k.lower()]['cooldown'])})
                 d[k.lower()].update({'last_use': d[k.lower()]['cooldown']})
+            print('############################################################\n'
+                  '#######################[COMMAND INFO]#######################\n'
+                  '############################################################')
+            pp().pprint(d)
+            print('\n')
             return d
+
+    @staticmethod
+    def channel_check(s: str):
+        try:
+            url = 'https://api.twitch.tv/kraken/channels/{0}'.format(s.strip('# '))
+            data = json.loads(url_request.urlopen(url).read().decode('UTF-8'))
+            print('############################################################\n'
+                  '#######################[CHANNEL INFO]#######################\n'
+                  '############################################################')
+            pp().pprint(data)
+            print('\n')
+        except (url_err.HTTPError, url_err.URLError, url_err.ContentTooShortError):
+            print('#########################[ERROR]#########################\n'
+                  '####[INVALID CHANNEL - PLEASE CHECK THE CHANNEL NAME]####\n'
+                  '#########################################################\n\n')
+            raise SystemExit
 
 
 class ModifyJSON:
