@@ -1,41 +1,41 @@
 {
   "commands": {
-    ":!Hello": {
-      "sub_only": false,
-      "cooldown": 5,
-      "response": "Hello ${USER}$"
-    },
-    ":!mycommand": {
-      "sub_only": false,
-      "cooldown": 5,
-      "response": "Custom response"
-    },
     ":!anothercmd": {
-      "sub_only": false,
       "cooldown": 5,
-      "response": "Another response"
+      "response": "Another response",
+      "sub_only": false
     },
     ":!test": {
-      "sub_only": true,
       "cooldown": 5.0,
-      "response": "this is a test"
+      "response": "this is a test",
+      "sub_only": false
+    },
+    ":!mycommand": {
+      "cooldown": 5,
+      "response": "Custom response",
+      "sub_only": false
+    },
+    ":!Hello": {
+      "cooldown": 5,
+      "response": "Hello ${USER}$",
+      "sub_only": false
     }
   },
   "general": {
-    "channel": "#damianjftw",
+    "commandrate": {
+      "cmd_limit": 100,
+      "time_limit": 30
+    },
     "special_access": {
-      "mod": true,
       "admin": true,
       "staff": true,
-      "global_mod": true
+      "global_mod": true,
+      "mod": true
     },
-    "commandrate": {
-      "time_limit": 30,
-      "cmd_limit": 100
-    },
-    "oauth": "oauth:zoqhuv51kj5kj363fb98xhg8wqt2pb",
-    "server": "irc.twitch.tv",
-    "botname": "FTW__BOT",
-    "port": 6667
+    "oauth": "oauth:key",
+    "botname": "bot_channelname",
+    "port": 6667,
+    "channel": "#channelname",
+    "server": "irc.twitch.tv"
   }
 }
