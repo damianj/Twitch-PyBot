@@ -143,13 +143,7 @@ if bot.connect() and bot.authenticate() and bot.join():
     while True:
         irc_msg = bot.irc_socket.recv(4096).decode("UTF-8").strip('\n\r')
         print(irc_msg)
-        if irc_msg.find(' NOTICE * :Login unsuccessful') != -1:
-            print('###########################[ERROR]###########################\n'
-                  '##########[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]##########\n'
-                  '#############################################################\n\n')
-            bot.irc_socket.close()
-            raise SystemExit
-        if irc_msg.find(' PRIVMSG ') != -1:
+        if ' PRIVMSG ' in irc_msg:
             s = irc_msg.split(';')
             try:
                 user = s[1].strip()[13:]
@@ -159,5 +153,11 @@ if bot.connect() and bot.authenticate() and bot.join():
                         Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
                                        if s[5].split(':')[0][10:].replace(' ', '') != ''
                                        else user.lower(), bot.settings.master_access))
-        if irc_msg.find('PING :') != -1:
+        elif 'PING :' in irc_msg:
             bot.ping(irc_msg.split()[1])
+        elif irc_msg.find(' NOTICE * :Login unsuccessful') != -1:
+            print('###########################[ERROR]###########################\n'
+                  '##########[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]##########\n'
+                  '#############################################################\n\n')
+            bot.irc_socket.close()
+            raise SystemExit
