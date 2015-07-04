@@ -10,13 +10,12 @@ class TwitchBot:
         try:
             self.config_file = get_file('config.json')[0]
         except IndexError:
-            try:
-                self.config_file = get_file('*.json')[0]
-            except IndexError:
-                print('###########################[ERROR]###########################\n'
-                      '####[NO CONFIG/.JSON FILE FOUND IN THE CURRENT DIRECTORY]####\n'
-                      '#############################################################\n\n')
-                raise SystemExit
+            self.config_file = get_file('*.json')[0]
+        except:
+            print('###########################[ERROR]###########################\n'
+                  '####[NO CONFIG/.JSON FILE FOUND IN THE CURRENT DIRECTORY]####\n'
+                  '#############################################################\n\n')
+            raise SystemExit
         self.irc_socket = socket()
         self.settings = JSONTools.ParseJSON.get_settings(self.config_file)
         self.user_commands = JSONTools.ParseJSON.get_commands(self.config_file)
@@ -31,7 +30,7 @@ class TwitchBot:
             print('###########################[ERROR]###########################\n'
                   '#####[VERIFY THAT THE SERVER & PORT NUMBERS ARE CORRECT]#####\n'
                   '#############################################################\n\n')
-            return False
+            raise SystemExit
 
     def authenticate(self):
         self.irc_socket.send(bytes('PASS {0}\r\n'.format(self.settings.oauth), 'UTF-8'))
@@ -48,25 +47,20 @@ class TwitchBot:
 
     def ping(self, response):
         self.irc_socket.send(bytes('PONG :{0}\r\n'.format(response), 'UTF-8'))
-        return True
 
     def message(self, message):
         self.irc_socket.send(bytes('PRIVMSG {0} :{1}\r\n'.format(self.settings.channel, message), 'UTF-8'))
         self.global_cmd_tracker['count'] += 1
         self.global_cmd_tracker['last_use'] = time()
-        return True
 
     def ban(self, u):
         self.message('/ban {0}'.format(u))
-        return True
 
     def unban(self, u):
         self.message('/unban {0}'.format(u))
-        return True
 
     def timeout(self, u, t):
         self.message('/timeout {0} {1}'.format(u, t))
-        return True
 
     def add_cmd(self, c):
         if len(c) != 5:
@@ -117,34 +111,23 @@ class TwitchBot:
         cmd = ' '.join(message.split()[4:]).strip().lower()
         if ':!' in cmd:
             if is_mod and any(c in cmd for c in self.master_commands.cmd_list):
-                if ':!ban ' in cmd:
-                    name = ''.join(message.split()[5:])
-                    self.ban(name)
-                    return
-                if ':!unban ' in cmd:
-                    name = ''.join(message.split()[5:])
-                    self.unban(name)
-                    return
-                if ':!timeout ' in cmd:
-                    try:
-                        t = int(''.join(message.split()[5:6]))
-                        name = ''.join(message.split()[6:])
-                    except ValueError:
-                        t = 300
-                        name = ''.join(message.split()[5:])
-                    self.timeout(name, t)
-                    return
                 if ':!addcmd|' in cmd:
                     self.add_cmd(cmd.strip().split('|'))
-                    return
-                if '!remcmd ' in cmd:
+                elif '!remcmd ' in cmd:
                     self.rem_cmd(cmd.strip().split())
-                    return
-
-                if ':!kill {0}'.format(self.settings.bot_name.lower()) in cmd:
+                elif ':!kill {0}'.format(self.settings.bot_name.lower()) in cmd:
                     self.message('Goodbye. MrDestructoid')
                     self.irc_socket.close()
                     raise SystemExit
+                elif ':!timeout ' in cmd:
+                    try:
+                        self.timeout(''.join(message.split()[6:]), int(''.join(message.split()[5:6])))
+                    except ValueError:
+                        self.timeout(''.join(message.split()[5:]), 300)
+                elif ':!ban ' in cmd:
+                    self.ban(''.join(message.split()[5:]))
+                elif ':!unban ' in cmd:
+                    self.unban(''.join(message.split()[5:]))
 
             elif not self.on_cooldown(cmd) and bool(self.user_commands):
                 if is_sub and self.user_commands[cmd]['sub_only'] or is_mod:
@@ -164,6 +147,7 @@ if bot.connect() and bot.authenticate() and bot.join():
             print('###########################[ERROR]###########################\n'
                   '##########[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]##########\n'
                   '#############################################################\n\n')
+            bot.irc_socket.close()
             raise SystemExit
         if irc_msg.find(' PRIVMSG ') != -1:
             s = irc_msg.split(';')
