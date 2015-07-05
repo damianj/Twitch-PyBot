@@ -2,7 +2,7 @@ from urllib import request as url_request, error as url_err
 from CommonAssets import GeneralSettings
 from itertools import chain
 from datetime import datetime
-from pprint import PrettyPrinter as PP
+from pprint import PrettyPrinter
 import json
 
 class ParseJSON:
@@ -13,7 +13,7 @@ class ParseJSON:
             print('############################################################\n'
                   '#######################[BOT SETTINGS]#######################\n'
                   '############################################################')
-            PP().pprint(settings)
+            PrettyPrinter().pprint(settings)
             print('\n')
             start_time = cls.channel_check(settings['channel'].strip('# ').lower())
             return GeneralSettings(settings['server'].strip(),
@@ -41,7 +41,7 @@ class ParseJSON:
             print('############################################################\n'
                   '#######################[COMMAND INFO]#######################\n'
                   '############################################################')
-            PP().pprint(d)
+            PrettyPrinter().pprint(d)
             print('\n')
             return d
 
@@ -53,7 +53,7 @@ class ParseJSON:
             print('############################################################\n'
                   '#######################[CHANNEL INFO]#######################\n'
                   '############################################################')
-            PP().pprint(data)
+            PrettyPrinter().pprint(data)
             print('\n')
             return datetime.strptime(data['stream']['created_at'], '%Y-%m-%dT%H:%M:%SZ') if data['stream'] else None
         except (url_err.HTTPError, url_err.URLError, url_err.ContentTooShortError):
