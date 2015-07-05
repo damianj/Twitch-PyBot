@@ -1,6 +1,10 @@
-class RestrictedCommands(object):
-    def __init__(self):
-        self.cmd_list = (':!ban ', ':!unban ', ':!timeout ', ':!addcmd|', '!remcmd ', ':!settime', ':!kill ')
+class IRCMaps(object):
+    def __init__(self, channel):
+        self.restricted_commands = (':!ban ', ':!unban ', ':!timeout ',
+                                    ':!addcmd|', '!remcmd ', ':!settime', ':!kill ')
+        self.irc_probe = (' PRIVMSG {0} :'.format(channel),
+                          'PING :tmi.twitch.tv',
+                          ':tmi.twitch.tv NOTICE * :Login unsuccessful')
 
 
 class GeneralSettings(object):
