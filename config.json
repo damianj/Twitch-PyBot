@@ -33,9 +33,9 @@
       "mod": true
     },
     "oauth": "oauth:key",
-    "botname": "bot_channelname",
+    "botname": "bot_account_name",
     "port": 6667,
-    "channel": "#channelname",
+    "channel": "#channel_name",
     "server": "irc.twitch.tv"
   }
 }
