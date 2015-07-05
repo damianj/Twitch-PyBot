@@ -23,10 +23,14 @@ class TwitchBot:
         self.irc_maps = IRCMaps(self.settings.channel)
         self.global_cmd_tracker = {'count': 0, 'last_use': 0.0}
 
+    def start(self):
+        self.connect()
+        self.authenticate()
+        self.join()
+
     def connect(self):
         try:
             self.irc_socket.connect((self.settings.host, self.settings.port))
-            return True
         except (OSError, TimeoutError):
             print('###########################[ERROR]###########################\n'
                   '#####[VERIFY THAT THE SERVER & PORT NUMBERS ARE CORRECT]#####\n'
@@ -37,14 +41,12 @@ class TwitchBot:
         self.irc_socket.send(bytes('PASS {0}\r\n'.format(self.settings.oauth), 'UTF-8'))
         self.irc_socket.send(bytes('NICK {0}\r\n'.format(self.settings.bot_name), 'UTF-8'))
         self.irc_socket.send(bytes('USER {0} {0} {0} :{0}\r\n'.format(self.settings.bot_name), 'UTF-8'))
-        return True
 
     def join(self):
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/membership\r\n', 'UTF-8'))
         self.irc_socket.send(bytes('JOIN {0}\r\n'.format(self.settings.channel), 'UTF-8'))
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/commands\r\n', 'UTF-8'))
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
-        return True
 
     def ping(self, response):
         self.irc_socket.send(bytes('PONG :{0}\r\n'.format(response), 'UTF-8'))
@@ -158,28 +160,3 @@ class TwitchBot:
                 elif not self.user_commands[cmd]['sub_only']:
                     self.message(self.replace_tags('{0}'.format(self.user_commands[cmd]['response']), username))
                     self.user_commands[cmd]['last_use'] = time()
-
-
-bot = TwitchBot()
-if bot.connect() and bot.authenticate() and bot.join():
-    while True:
-        irc_msg = bot.irc_socket.recv(4096).decode("UTF-8").strip('\n\r')
-        print(irc_msg)
-        if bot.irc_maps.irc_probe[0] in irc_msg:
-            s = irc_msg.split(';')
-            try:
-                user = s[1].strip()[13:]
-            except IndexError:
-                user = s[5].split(':')[1].split('!')[0]
-            bot.command(user, irc_msg, Fn.str_to_bool(s[3][11:]),
-                        Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
-                                       if s[5].split(':')[0][10:].replace(' ', '') != ''
-                                       else user.lower(), bot.settings.master_access))
-        elif bot.irc_maps.irc_probe[1] in irc_msg:
-            bot.ping(irc_msg.split()[1])
-        elif bot.irc_maps.irc_probe[2] in irc_msg:
-            print('###########################[ERROR]###########################\n'
-                  '##########[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]##########\n'
-                  '#############################################################\n\n')
-            bot.irc_socket.close()
-            raise SystemExit
