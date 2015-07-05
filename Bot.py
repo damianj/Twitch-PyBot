@@ -1,7 +1,9 @@
 import JSONTools
 from CommonAssets import GeneralFunctions as Fn, RestrictedCommands
+from math import fabs as absolute_val
 from glob import glob as get_file
-from time import time
+from time import time, timezone, altzone, localtime, daylight
+from datetime import datetime, timedelta
 from socket import socket
 
 
@@ -47,6 +49,25 @@ class TwitchBot:
 
     def ping(self, response):
         self.irc_socket.send(bytes('PONG :{0}\r\n'.format(response), 'UTF-8'))
+
+    def set_start_time(self):
+        self.settings.start_time = datetime.utcnow()
+        offset_hrs = -((altzone if daylight and localtime().tm_isdst > 0 else timezone) / 3600)
+        offset_min = int((abs(offset_hrs) - abs(int(offset_hrs))) * 60)
+        return '{0} (UTC:{1}:{2:0^2})'.format(str(datetime.now() - timedelta(microseconds=datetime.now().microsecond)),
+                                              int(offset_hrs), offset_min)
+
+    def replace_tags(self, m, u):
+        if '${USER}$' in m:
+            m = m.replace('${USER}$', u)
+        if '${UPTIME}$' in m:
+            if self.settings.start_time:
+                m = m.replace('${UPTIME}$', str((datetime.utcnow() - self.settings.start_time)
+                                                - timedelta(microseconds=(datetime.utcnow()
+                                                            - self.settings.start_time).microseconds)))
+            else:
+                m = m.replace('${UPTIME}$', '00:00:00')
+        return m
 
     def message(self, message):
         self.irc_socket.send(bytes('PRIVMSG {0} :{1}\r\n'.format(self.settings.channel, message), 'UTF-8'))
@@ -128,13 +149,15 @@ class TwitchBot:
                     self.ban(''.join(message.split()[5:]))
                 elif ':!unban ' in cmd:
                     self.unban(''.join(message.split()[5:]))
+                elif ':!settime' in cmd:
+                    self.message('Updated the stream start time to: {0}'.format(self.set_start_time()))
 
             elif not self.on_cooldown(cmd) and bool(self.user_commands):
                 if is_sub and self.user_commands[cmd]['sub_only'] or is_mod:
-                    self.message('{0}'.format(self.user_commands[cmd]['response'].replace('${USER}$', username)))
+                    self.message(self.replace_tags('{0}'.format(self.user_commands[cmd]['response']), username))
                     self.user_commands[cmd]['last_use'] = time()
                 elif not self.user_commands[cmd]['sub_only']:
-                    self.message('{0}'.format(self.user_commands[cmd]['response'].replace('${USER}$', username)))
+                    self.message(self.replace_tags('{0}'.format(self.user_commands[cmd]['response']), username))
                     self.user_commands[cmd]['last_use'] = time()
 
 
