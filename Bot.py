@@ -1,6 +1,5 @@
 import JSONTools
-from CommonAssets import GeneralFunctions as Fn, RestrictedCommands
-from math import fabs as absolute_val
+from CommonAssets import GeneralFunctions as Fn, IRCMaps
 from glob import glob as get_file
 from time import time, timezone, altzone, localtime, daylight
 from datetime import datetime, timedelta
@@ -21,7 +20,7 @@ class TwitchBot:
         self.irc_socket = socket()
         self.settings = JSONTools.ParseJSON.get_settings(self.config_file)
         self.user_commands = JSONTools.ParseJSON.get_commands(self.config_file)
-        self.master_commands = RestrictedCommands()
+        self.irc_maps = IRCMaps(self.settings.channel)
         self.global_cmd_tracker = {'count': 0, 'last_use': 0.0}
 
     def connect(self):
@@ -131,7 +130,7 @@ class TwitchBot:
 
         cmd = ' '.join(message.split()[4:]).strip().lower()
         if ':!' in cmd:
-            if is_mod and any(c in cmd for c in self.master_commands.cmd_list):
+            if is_mod and any(c in cmd for c in self.irc_maps.restricted_commands):
                 if ':!addcmd|' in cmd:
                     self.add_cmd(cmd.strip().split('|'))
                 elif '!remcmd ' in cmd:
@@ -163,13 +162,10 @@ class TwitchBot:
 
 bot = TwitchBot()
 if bot.connect() and bot.authenticate() and bot.join():
-    msg_map = (' PRIVMSG {0} :'.format(bot.settings.channel),
-               'PING :tmi.twitch.tv',
-               ':tmi.twitch.tv NOTICE * :Login unsuccessful')
     while True:
         irc_msg = bot.irc_socket.recv(4096).decode("UTF-8").strip('\n\r')
         print(irc_msg)
-        if msg_map[0] in irc_msg:
+        if bot.irc_maps.irc_probe[0] in irc_msg:
             s = irc_msg.split(';')
             try:
                 user = s[1].strip()[13:]
@@ -179,9 +175,9 @@ if bot.connect() and bot.authenticate() and bot.join():
                         Fn.str_to_bool(s[5].split(':')[0][10:].replace(' ', '')
                                        if s[5].split(':')[0][10:].replace(' ', '') != ''
                                        else user.lower(), bot.settings.master_access))
-        elif msg_map[1] in irc_msg:
+        elif bot.irc_maps.irc_probe[1] in irc_msg:
             bot.ping(irc_msg.split()[1])
-        elif msg_map[2] in irc_msg:
+        elif bot.irc_maps.irc_probe[2] in irc_msg:
             print('###########################[ERROR]###########################\n'
                   '##########[PLEASE VERIFY YOUR OAUTH KEY & BOT NAME]##########\n'
                   '#############################################################\n\n')
