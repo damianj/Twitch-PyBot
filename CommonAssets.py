@@ -4,7 +4,8 @@ class IRCMaps(object):
                                     ':!addcmd|', '!remcmd ', ':!settime', ':!kill ')
         self.irc_probe = (' PRIVMSG {0} :'.format(channel),
                           'PING :tmi.twitch.tv',
-                          ':tmi.twitch.tv NOTICE * :Login unsuccessful')
+                          ':tmi.twitch.tv NOTICE * :Login unsuccessful',
+                          ':tmi.twitch.tv NOTICE * :Error logging in')
 
 
 class GeneralSettings(object):
