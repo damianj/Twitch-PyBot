@@ -132,9 +132,9 @@ class TwitchBot:
         if ':!' in cmd:
             if is_mod and any(c in cmd for c in self.irc_maps.restricted_commands):
                 if ':!addcmd|' in cmd:
-                    self.add_cmd(cmd.strip().split('|'))
+                    self.add_cmd(' '.join(message.split()[4:]).strip().split('|'))
                 elif '!remcmd ' in cmd:
-                    self.rem_cmd(cmd.strip().split())
+                    self.rem_cmd(cmd.split())
                 elif ':!kill {0}'.format(self.settings.bot_name.lower()) in cmd:
                     self.message('Goodbye. MrDestructoid')
                     self.irc_socket.close()
