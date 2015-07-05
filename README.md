@@ -8,11 +8,12 @@ This project is still in it's infancy. You'll need minimal knowledge of editing 
 - Make as many customs commands as you want within the config.json
   - Set whether they are sub only commands or not
   - Use ${USER}$ to refer to the user that called the command
-  - Use ${UPTIME}$ returns the current uptime of the stream. (use !settime if bot was started before stream)
+  - Use ${UPTIME}$ to return  the current uptime of the stream. (use !settime if bot was started before stream)
   - Set custom cooldown times (*i.e.* the time necessary between each successive call of the command)
+  - Set whether commands are sub-only or can be used by anyone in chat
 - Can also use the !addcmd and !remcmd commands when the bot is in an IRC channel to add and remove commands from the JSON file
   - **!addcmd|!examplecommand|Example response for the command|5|False**
-    - *[call command]|[command name]|[response text]|[cooldown]|[sub-only command]*
+    - *![call command]|![command name]|[response text]|[cooldown]|[sub-only]*
   - **!remcmd !examplecommand**
     - *[call command] [name of the command to remove]*
 - Designate who can access your master commands (*i.e.* !ban, !unban, etc.)
