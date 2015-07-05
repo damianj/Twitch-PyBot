@@ -1,7 +1,8 @@
 from urllib import request as url_request, error as url_err
 from CommonAssets import GeneralSettings
 from itertools import chain
-from pprint import PrettyPrinter as pp
+from datetime import datetime
+from pprint import PrettyPrinter as PP
 import json
 
 class ParseJSON:
@@ -12,9 +13,9 @@ class ParseJSON:
             print('############################################################\n'
                   '#######################[BOT SETTINGS]#######################\n'
                   '############################################################')
-            pp().pprint(settings)
+            PP().pprint(settings)
             print('\n')
-            cls.channel_check(settings['channel'].strip('# ').lower())
+            start_time = cls.channel_check(settings['channel'].strip('# ').lower())
             return GeneralSettings(settings['server'].strip(),
                                    settings['port'],
                                    settings['oauth'].strip(),
@@ -25,7 +26,8 @@ class ParseJSON:
                                    settings['commandrate'],
                                    dict(chain(
                                        settings['special_access'].items(),
-                                       {settings['channel'].lower().strip('# '): True}.items())))
+                                       {settings['channel'].lower().strip('# '): True}.items())),
+                                   start_time if start_time else None)
 
     @staticmethod
     def get_commands(file):
@@ -39,20 +41,21 @@ class ParseJSON:
             print('############################################################\n'
                   '#######################[COMMAND INFO]#######################\n'
                   '############################################################')
-            pp().pprint(d)
+            PP().pprint(d)
             print('\n')
             return d
 
     @staticmethod
     def channel_check(s: str):
         try:
-            url = 'https://api.twitch.tv/kraken/channels/{0}'.format(s.strip('# '))
+            url = 'https://api.twitch.tv/kraken/streams/{0}'.format(s.strip('# '))
             data = json.loads(url_request.urlopen(url).read().decode('UTF-8'))
             print('############################################################\n'
                   '#######################[CHANNEL INFO]#######################\n'
                   '############################################################')
-            pp().pprint(data)
+            PP().pprint(data)
             print('\n')
+            return datetime.strptime(data['stream']['created_at'], '%Y-%m-%dT%H:%M:%SZ') if data['stream'] else None
         except (url_err.HTTPError, url_err.URLError, url_err.ContentTooShortError):
             print('#########################[ERROR]#########################\n'
                   '####[INVALID CHANNEL - PLEASE CHECK THE CHANNEL NAME]####\n'
