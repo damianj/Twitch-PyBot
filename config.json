@@ -32,7 +32,7 @@
       "global_mod": true,
       "mod": true
     },
-    "oauth": "oauth:key",
+    "oauth": "oauth:key_from_http://twitchapps.com/tmi",
     "botname": "bot_account_name",
     "port": 6667,
     "channel": "#channel_name",
