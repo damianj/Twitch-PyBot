@@ -1,23 +1,28 @@
 {
   "commands": {
-    ":!anothercmd": {
-      "cooldown": 5,
-      "response": "Another response",
+    ":!test": {
+      "response": "this is a test",
+      "cooldown": 5.0,
       "sub_only": false
     },
-    ":!test": {
-      "cooldown": 5.0,
-      "response": "this is a test",
+    ":!anothercmd": {
+      "response": "Another response",
+      "cooldown": 5,
+      "sub_only": false
+    },
+    ":!uptime": {
+      "response": "${UPTIME}$",
+      "cooldown": 90.0,
       "sub_only": false
     },
     ":!mycommand": {
-      "cooldown": 5,
       "response": "Custom response",
+      "cooldown": 5,
       "sub_only": false
     },
     ":!Hello": {
-      "cooldown": 5,
       "response": "Hello ${USER}$",
+      "cooldown": 5,
       "sub_only": false
     }
   },
