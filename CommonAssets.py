@@ -1,11 +1,11 @@
 class RestrictedCommands(object):
     def __init__(self):
-        self.cmd_list = (':!ban ', ':!unban ', ':!timeout ', ':!addcmd|', '!remcmd ', ':!kill ')
+        self.cmd_list = (':!ban ', ':!unban ', ':!timeout ', ':!addcmd|', '!remcmd ', ':!settime', ':!kill ')
 
 
 class GeneralSettings(object):
     def __init__(self, host=None, port=None, oauth=None, bot_name=None,
-                 channel=None, command_limit=None, master_access=None):
+                 channel=None, command_limit=None, master_access=None, start_time=None):
         self.host = host
         self.port = port
         self.oauth = oauth
@@ -13,6 +13,7 @@ class GeneralSettings(object):
         self.channel = channel
         self.command_limit = command_limit
         self.master_access = master_access
+        self.start_time = start_time
 
 
 class GeneralFunctions:
