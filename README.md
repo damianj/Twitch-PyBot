@@ -13,9 +13,9 @@ This project is still in it's infancy. You'll need minimal knowledge of editing 
   - Set whether commands are sub-only or can be used by anyone in chat
 - Can also use the !addcmd and !remcmd commands when the bot is in an IRC channel to add and remove commands from the JSON file
   - **!addcmd|!examplecommand|Example response for the command|5|False**
-    - *![call command]|![command name]|[response text]|[cooldown]|[sub-only]*
+    - !*[call command]*|!*[command name]*|*[response text]*|*[cooldown]*|*[sub-only]*
   - **!remcmd !examplecommand**
-    - *[call command] [name of the command to remove]*
+    - !*[call command]* !*[name of the command to remove]*
 - Designate who can access your master commands (*i.e.* !ban, !unban, etc.)
   - Can pick and choose from mods, global mods, admins, and staff
 - Relatively easy to configure. Simply make a twitch account for your bot and get your oauth token
