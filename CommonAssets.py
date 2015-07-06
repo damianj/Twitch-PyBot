@@ -1,3 +1,8 @@
+import os
+import json
+import logging.config
+
+
 class IRCMaps(object):
     def __init__(self, channel):
         self.restricted_commands = (':!ban ', ':!unban ', ':!timeout ',
@@ -8,7 +13,7 @@ class IRCMaps(object):
                           ':tmi.twitch.tv NOTICE * :Error logging in')
 
 
-class GeneralSettings(object):
+class BotSettings(object):
     def __init__(self, host=None, port=None, oauth=None, bot_name=None,
                  channel=None, command_limit=None, master_access=None, start_time=None):
         self.host = host
@@ -22,6 +27,19 @@ class GeneralSettings(object):
 
 
 class GeneralFunctions:
+    @staticmethod
+    def setup_logging(default_path='logging.json', default_level=logging.INFO, env_key='LOG_CFG'):
+        path = default_path
+        value = os.getenv(env_key, None)
+        if value:
+            path = value
+        if os.path.exists(path):
+            with open(path, 'rt') as f:
+                config = json.load(f)
+            logging.config.dictConfig(config)
+        else:
+            logging.basicConfig(level=default_level)
+
     @staticmethod
     def str_to_bool(s: str, l: iter=()):
         if s.lower() in ('yes', 'true', 't', 'y', '1') or s in l:
