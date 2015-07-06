@@ -1,22 +1,24 @@
 import JSONTools
 import logging
+import socket
 from CommonAssets import GeneralFunctions as Gen_Tools, IRCMaps
 from glob import glob as get_file
 from time import time, timezone, altzone, localtime, daylight
 from datetime import datetime, timedelta
-from socket import socket
 
 
 class TwitchBot:
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger(__name__)
+        self.logger.info('\n::::::::::::::::::::::::::::::::::\t\n:::STARTING NEW LOGGING SESSION:::'
+                         '\t\n::::::::::::::::::::::::::::::::::\n')
         try:
             self.config_file = get_file('config.json')[0]
         except IndexError:
-            logger.error('Could not load the config file. Make sure your '
-                         'config.json is in the same directory as TwitchBot.py')
+            self.logger.error('Could not load the config file. Make sure your '
+                              'config.json is in the same directory as TwitchBot.py')
             raise SystemExit
-        self.irc_socket = socket()
+        self.irc_socket = socket.socket()
         self.JSONHandler = JSONTools.JSONHandler()
         self.settings = self.JSONHandler.get_settings(self.config_file)
         self.user_commands = self.JSONHandler.get_commands(self.config_file)
