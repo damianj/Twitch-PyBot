@@ -1,9 +1,11 @@
-from urllib import request as url_request, error as url_err
-from CommonAssets import BotSettings
 from itertools import chain
 from datetime import datetime
+from urllib import request
+from urllib import error
 import logging
 import json
+
+from CommonAssets import BotSettings
 
 
 class JSONHandler:
@@ -39,11 +41,11 @@ class JSONHandler:
 
     def channel_check(self, s: str):
         try:
-            url = 'https://api.twitch.tv/kraken/streams/{0}'.format(s.strip('# '))
-            data = json.loads(url_request.urlopen(url).read().decode('UTF-8'))
+            url = 'https://api.twitch.tv/kraken/streams/{0}'.format(s)
+            data = json.loads(request.urlopen(url).read().decode('UTF-8'))
             self.logger.debug('LOADED CHANNEL INFO:\n{0}\n'.format(data).replace('\n', '\n\t'))
             return datetime.strptime(data['stream']['created_at'], '%Y-%m-%dT%H:%M:%SZ') if data['stream'] else None
-        except (url_err.HTTPError, url_err.URLError, url_err.ContentTooShortError):
+        except (error.HTTPError, error.URLError, error.ContentTooShortError):
             self.logger.error('{0} is not a valid channel. Please verify the name'.format(s.strip('# ')))
             raise SystemExit
 
