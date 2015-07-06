@@ -1,10 +1,11 @@
-import JSONTools
 import logging
 import socket
-from CommonAssets import GeneralFunctions as Gen_Tools, IRCMaps
-from glob import glob as get_file
+import glob as get_file
 from time import time, timezone, altzone, localtime, daylight
 from datetime import datetime, timedelta
+
+import JSONTools
+from CommonAssets import GeneralFunctions as Gen_Tools, IRCMaps
 
 
 class TwitchBot:
@@ -13,7 +14,7 @@ class TwitchBot:
         self.logger.info('\n::::::::::::::::::::::::::::::::::\t\n:::STARTING NEW LOGGING SESSION:::'
                          '\t\n::::::::::::::::::::::::::::::::::\n')
         try:
-            self.config_file = get_file('config.json')[0]
+            self.config_file = get_file.glob('config.json')[0]
         except IndexError:
             self.logger.error('Could not load the config file. Make sure your '
                               'config.json is in the same directory as TwitchBot.py')
@@ -72,7 +73,7 @@ class TwitchBot:
             if self.settings.start_time:
                 m = m.replace('${UPTIME}$', str((datetime.utcnow() - self.settings.start_time)
                                                 - timedelta(microseconds=(datetime.utcnow()
-                                                            - self.settings.start_time).microseconds)))
+                                                                          - self.settings.start_time).microseconds)))
             else:
                 m = m.replace('${UPTIME}$', '00:00:00')
         return m
