@@ -1,5 +1,6 @@
 import JSONTools
-from CommonAssets import GeneralFunctions as Fn, IRCMaps
+import logging
+from CommonAssets import GeneralFunctions as Gen_Tools, IRCMaps
 from glob import glob as get_file
 from time import time, timezone, altzone, localtime, daylight
 from datetime import datetime, timedelta
@@ -7,19 +8,18 @@ from socket import socket
 
 
 class TwitchBot:
-    def __init__(self):
+    def __init__(self, logger=None):
+        self.logger = logger or logging.getLogger(__name__)
         try:
             self.config_file = get_file('config.json')[0]
         except IndexError:
-            self.config_file = get_file('*.json')[0]
-        except:
-            print('###########################[ERROR]###########################\n'
-                  '####[NO CONFIG/.JSON FILE FOUND IN THE CURRENT DIRECTORY]####\n'
-                  '#############################################################\n\n')
+            logger.error('Could not load the config file. Make sure your '
+                         'config.json is in the same directory as TwitchBot.py')
             raise SystemExit
         self.irc_socket = socket()
-        self.settings = JSONTools.ParseJSON.get_settings(self.config_file)
-        self.user_commands = JSONTools.ParseJSON.get_commands(self.config_file)
+        self.JSONHandler = JSONTools.JSONHandler()
+        self.settings = self.JSONHandler.get_settings(self.config_file)
+        self.user_commands = self.JSONHandler.get_commands(self.config_file)
         self.irc_maps = IRCMaps(self.settings.channel)
         self.global_cmd_tracker = {'count': 0, 'last_use': 0.0}
 
@@ -31,30 +31,35 @@ class TwitchBot:
     def connect(self):
         try:
             self.irc_socket.connect((self.settings.host, self.settings.port))
+            self.logger.info('Connected to {0}:{1} successfully'.format(self.settings.host, self.settings.port))
         except (OSError, TimeoutError):
-            print('###########################[ERROR]###########################\n'
-                  '#####[VERIFY THAT THE SERVER & PORT NUMBERS ARE CORRECT]#####\n'
-                  '#############################################################\n\n')
+            self.logger.error('Could not connect using {0}:{1} Please verify the host address '
+                              'and port number.'.format(self.settings.host, self.settings.port))
             raise SystemExit
 
     def authenticate(self):
         self.irc_socket.send(bytes('PASS {0}\r\n'.format(self.settings.oauth), 'UTF-8'))
         self.irc_socket.send(bytes('NICK {0}\r\n'.format(self.settings.bot_name), 'UTF-8'))
         self.irc_socket.send(bytes('USER {0} {0} {0} :{0}\r\n'.format(self.settings.bot_name), 'UTF-8'))
+        self.logger.info('Attempting to authenticate bot using:\n'
+                         '\tOAUTH: {0}\n\tNICK/USER: {1}'.format(self.settings.oauth, self.settings.bot_name))
 
     def join(self):
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/membership\r\n', 'UTF-8'))
         self.irc_socket.send(bytes('JOIN {0}\r\n'.format(self.settings.channel), 'UTF-8'))
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/commands\r\n', 'UTF-8'))
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
+        self.logger.info('Connected to channel {0} successfully'.format(self.settings.channel))
 
     def ping(self, response):
         self.irc_socket.send(bytes('PONG :{0}\r\n'.format(response), 'UTF-8'))
 
-    def set_start_time(self):
+    def set_start_time(self, mod):
         self.settings.start_time = datetime.utcnow()
         offset_hrs = -((altzone if daylight and localtime().tm_isdst > 0 else timezone) / 3600)
         offset_min = int((abs(offset_hrs) - abs(int(offset_hrs))) * 60)
+        self.logger.info('{0} set the stream start time to {1}'
+                         ''.format(mod, str(datetime.now() - timedelta(microseconds=datetime.now().microsecond))))
         return '{0} (UTC:{1}:{2:0^2})'.format(str(datetime.now() - timedelta(microseconds=datetime.now().microsecond)),
                                               int(offset_hrs), offset_min)
 
@@ -75,16 +80,19 @@ class TwitchBot:
         self.global_cmd_tracker['count'] += 1
         self.global_cmd_tracker['last_use'] = time()
 
-    def ban(self, u):
+    def ban(self, u, mod):
         self.message('/ban {0}'.format(u))
+        self.logger.info('{0} banned {1}'.format(mod, u))
 
-    def unban(self, u):
+    def unban(self, u, mod):
         self.message('/unban {0}'.format(u))
+        self.logger.info('{0} un-banned {1}'.format(mod, u))
 
-    def timeout(self, u, t):
+    def timeout(self, u, t, mod):
         self.message('/timeout {0} {1}'.format(u, t))
+        self.logger.info('{0} timed out {1} for {2} second(s)'.format(mod, u, t))
 
-    def add_cmd(self, c):
+    def add_cmd(self, c, mod):
         if len(c) != 5:
             self.message('Incorrect syntax: !addcmd|!cmdname|response text|5|False\n'
                          '(number = cooldown for the command, True/False designates sub-only status)')
@@ -96,19 +104,21 @@ class TwitchBot:
                     'response': str(c[2]),
                     'cooldown': float(c[3]),
                     'last_use': float(c[3]),
-                    'sub_only': Fn.str_to_bool(c[4])}
-                JSONTools.ModifyJSON.add_command(self.config_file, c[1].lower(),
-                                                 dict.copy(self.user_commands[':{0}'.format(c[1].lower())]))
+                    'sub_only': Gen_Tools.str_to_bool(c[4])}
+                self.JSONHandler.add_command(self.config_file, c[1].lower(),
+                                             dict.copy(self.user_commands[':{0}'.format(c[1].lower())]))
+                self.logger.info('{0} added the command {1}:{2}'.format(mod, c[1].lower(), c[2].lower()))
             except (KeyError, ValueError):
                 self.message('Couldn\'t create the command. Please check the syntax and arguments.')
 
-    def rem_cmd(self, c):
+    def rem_cmd(self, c, mod):
         try:
             if len(c) == 2:
                 cmd_name = ':{0}'.format(c[1])
                 if cmd_name in self.user_commands:
                     self.user_commands.pop(cmd_name)
-                    JSONTools.ModifyJSON.remove_command(self.config_file, cmd_name)
+                    self.JSONHandler.remove_command(self.config_file, cmd_name)
+                    self.logger.info('{0} removed the command {1}'.format(mod, cmd_name))
                 else:
                     self.message('Command not found. Check spelling and make sure it exists.')
             else:
@@ -123,35 +133,41 @@ class TwitchBot:
             return True
 
     def command(self, username, message, is_sub, is_mod):
-        if (time() - self.global_cmd_tracker['last_use']) > self.settings.command_limit['time_limit']:
+        td = time() - self.global_cmd_tracker['last_use']
+        if td > self.settings.command_limit['time_limit']:
             self.global_cmd_tracker['count'] = 0
 
         if self.global_cmd_tracker['count'] >= self.settings.command_limit['cmd_limit'] \
-                and (time() - self.global_cmd_tracker['last_use']) < self.settings.command_limit['time_limit']:
+                and td < self.settings.command_limit['time_limit']:
+            self.logger.info('WARNING: {} commands called in {} seconds'.format(self.global_cmd_tracker['count'], td))
             return  # Do nothing if you've reached the global command rate limit
 
         cmd = ' '.join(message.split()[4:]).strip().lower()
         if ':!' in cmd:
             if is_mod and any(c in cmd for c in self.irc_maps.restricted_commands):
                 if ':!addcmd|' in cmd:
-                    self.add_cmd(' '.join(message.split()[4:]).strip().split('|'))
+                    self.add_cmd(' '.join(message.split()[4:]).strip().split('|'), username)
                 elif '!remcmd ' in cmd:
-                    self.rem_cmd(cmd.split())
+                    self.rem_cmd(cmd.split(), username)
                 elif ':!kill {0}'.format(self.settings.bot_name.lower()) in cmd:
                     self.message('Goodbye. MrDestructoid')
+                    self.logger.info('{0} killed {1} via the !kill command'.format(username, self.settings.bot_name))
                     self.irc_socket.close()
                     raise SystemExit
                 elif ':!timeout ' in cmd:
                     try:
-                        self.timeout(''.join(message.split()[6:]), int(''.join(message.split()[5:6])))
+                        self.timeout(''.join(message.split()[6:]), int(''.join(message.split()[5:6])), username)
                     except ValueError:
-                        self.timeout(''.join(message.split()[5:]), 300)
+                        try:
+                            self.timeout(''.join(message.split()[5:6]), int(''.join(message.split()[6:])), username)
+                        except ValueError:
+                            self.timeout(''.join(message.split()[5:]), 300, username)
                 elif ':!ban ' in cmd:
-                    self.ban(''.join(message.split()[5:]))
+                    self.ban(''.join(message.split()[5:]), username)
                 elif ':!unban ' in cmd:
-                    self.unban(''.join(message.split()[5:]))
+                    self.unban(''.join(message.split()[5:]), username)
                 elif ':!settime' in cmd:
-                    self.message('Updated the stream start time to: {0}'.format(self.set_start_time()))
+                    self.message('Updated the stream start time to: {0}'.format(self.set_start_time(username)))
 
             elif not self.on_cooldown(cmd) and bool(self.user_commands):
                 if is_sub and self.user_commands[cmd]['sub_only'] or is_mod:
