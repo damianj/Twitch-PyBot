@@ -5,6 +5,7 @@ from datetime import datetime
 import logging
 import json
 
+
 class JSONHandler:
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger(__name__)
@@ -12,7 +13,7 @@ class JSONHandler:
     def get_settings(self, file):
         with open(file, 'r') as fp:
             settings = json.load(fp)['general']
-            self.logger.debug('LOADED SETTINGS:\n{0}\n'.format(settings))
+            self.logger.debug('LOADED SETTINGS:\n{0}\n'.format(settings).replace('\n', '\n\t'))
             start_time = self.channel_check(settings['channel'].strip('# ').lower())
             return BotSettings(settings['server'].strip(),
                                settings['port'],
@@ -33,14 +34,14 @@ class JSONHandler:
                 d[k.lower()].update({'cooldown': float(d[k.lower()]['cooldown'])})
                 d[k.lower()].update({'cooldown': float(d[k.lower()]['cooldown'])})
                 d[k.lower()].update({'last_use': d[k.lower()]['cooldown']})
-            self.logger.debug('LOADED COMMANDS:\n{0}\n'.format(d))
+            self.logger.debug('LOADED COMMANDS:\n{0}\n'.format(d).replace('\n', '\n\t'))
             return d
 
     def channel_check(self, s: str):
         try:
             url = 'https://api.twitch.tv/kraken/streams/{0}'.format(s.strip('# '))
             data = json.loads(url_request.urlopen(url).read().decode('UTF-8'))
-            self.logger.debug('LOADED CHANNEL INFO:\n{0}\n'.format(data))
+            self.logger.debug('LOADED CHANNEL INFO:\n{0}\n'.format(data).replace('\n', '\n\t'))
             return datetime.strptime(data['stream']['created_at'], '%Y-%m-%dT%H:%M:%SZ') if data['stream'] else None
         except (url_err.HTTPError, url_err.URLError, url_err.ContentTooShortError):
             self.logger.error('{0} is not a valid channel. Please verify the name'.format(s.strip('# ')))
