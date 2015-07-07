@@ -4,7 +4,7 @@
     "formatters": {
         "simple": {
             "format": "[%(asctime)s] %(name)s:%(levelname)s:::\n%(message)s\n",
-            "datefmt": "%d-%m-%Y @ %H:%M:%S %Z"
+            "datefmt": "(%A) %B %d, %Y @ %H:%M:%S"
         }
     },
 
