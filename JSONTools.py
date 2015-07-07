@@ -26,6 +26,7 @@ class JSONHandler:
                                settings['commandrate'],
                                dict(chain(settings['special_access'].items(),
                                           {settings['channel'].lower().strip('# '): True}.items())),
+                               settings['verbose_logs'],
                                start_time if start_time else None)
 
     def get_commands(self, file):
