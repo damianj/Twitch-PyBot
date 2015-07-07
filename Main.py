@@ -20,8 +20,8 @@ def main(twitch_bot):
         elif twitch_bot.irc_maps.irc_probe[1] in irc_msg:
             twitch_bot.ping(irc_msg.split()[1])
         elif twitch_bot.irc_maps.irc_probe[2] in irc_msg or twitch_bot.irc_maps.irc_probe[3] in irc_msg:
-            twitch_bot.logger.error('Error logging in: Please verify the oauth key and bot account name\n'
-                                    '\tClosing the connection and exiting the program.')
+            twitch_bot.logger.error('Error logging in: Please verify your oauth key & the bot account name\n'
+                                    'Closing the connection and exiting the program.')
             twitch_bot.irc_socket.close()
             raise SystemExit
 
