@@ -19,6 +19,7 @@ You'll need minimal knowledge of editing and handling .json files. If you wan't 
 - Designate who can access your master commands (*i.e.* !ban, !unban, etc.)
   - Can pick and choose from mods, global mods, admins, and staff
 - Relatively easy to configure. Simply make a twitch account for your bot and get your oauth token
+- Logs keep track of each session you use the bot and record what happens in chat. See your info.log file for this data.
 
 #Requirements
 - Python 3.4 or higher
