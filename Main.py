@@ -6,7 +6,8 @@ def main(twitch_bot):
     twitch_bot.start()
     while True:
         irc_msg = twitch_bot.irc_socket.recv(1024).decode("UTF-8").strip('\n\r')
-        twitch_bot.logger.info('[IRC CHAT LOG]:\n{0}'.format(irc_msg))
+        if twitch_bot.settings.verbose_logs:
+            twitch_bot.logger.info('[IRC CHAT LOG]:\n{0}'.format(irc_msg))
         if twitch_bot.irc_maps.irc_probe[0] in irc_msg:
             s = irc_msg.split(';')
             try:
