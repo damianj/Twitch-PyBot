@@ -1,46 +1,43 @@
 {
+  "general": {
+    "server": "irc.twitch.tv",
+    "special_access": {
+      "staff": true,
+      "mod": true,
+      "global_mod": true,
+      "admin": true
+    },
+    "commandrate": {
+      "time_limit": 30,
+      "cmd_limit": 100
+    },
+    "oauth": "oauth:key_from_http://twitchapps.com/tmi",
+    "channel": "#channel_name",
+    "port": 6667,
+    "botname": "bot_account_name",
+    "server": "irc.twitch.tv",
+    "verbose_logs": false
+  },
   "commands": {
-    ":!test": {
-      "response": "this is a test",
-      "cooldown": 5.0,
-      "sub_only": false
-    },
-    ":!anothercmd": {
-      "response": "Another response",
-      "cooldown": 5,
-      "sub_only": false
-    },
-    ":!uptime": {
-      "response": "${UPTIME}$",
-      "cooldown": 90.0,
-      "sub_only": false
+    ":!Hello": {
+      "response": "Hello ${USER}$",
+      "sub_only": false,
+      "cooldown": 5
     },
     ":!mycommand": {
       "response": "Custom response",
-      "cooldown": 5,
-      "sub_only": false
+      "sub_only": false,
+      "cooldown": 5
     },
-    ":!Hello": {
-      "response": "Hello ${USER}$",
-      "cooldown": 5,
-      "sub_only": false
+    ":!uptime": {
+      "response": "${UPTIME}$",
+      "sub_only": false,
+      "cooldown": 90.0
+    },
+    ":!anothercmd": {
+      "response": "Another response",
+      "sub_only": false,
+      "cooldown": 5
     }
-  },
-  "general": {
-    "commandrate": {
-      "cmd_limit": 100,
-      "time_limit": 30
-    },
-    "special_access": {
-      "admin": true,
-      "staff": true,
-      "global_mod": true,
-      "mod": true
-    },
-    "oauth": "oauth:key_from_http://twitchapps.com/tmi",
-    "botname": "bot_account_name",
-    "port": 6667,
-    "channel": "#channel_name",
-    "server": "irc.twitch.tv"
   }
 }
