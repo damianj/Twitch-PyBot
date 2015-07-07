@@ -11,8 +11,7 @@ from CommonAssets import GeneralFunctions as Gen_Tools, IRCMaps
 class TwitchBot:
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger(__name__)
-        self.logger.info('\n::::::::::::::::::::::::::::::::::\t\n:::STARTING NEW LOGGING SESSION:::'
-                         '\t\n::::::::::::::::::::::::::::::::::\n')
+        self.logger.info('\n\t{0::^50}\n\t{0::^10}[STARTING NEW LOGGING SESSION]{0::^10}\n\t{0::^50}'.format(''))
         try:
             self.config_file = get_file.glob('config.json')[0]
         except IndexError:
