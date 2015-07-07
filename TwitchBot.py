@@ -3,6 +3,7 @@ import socket
 import glob as get_file
 from time import time, timezone, altzone, localtime, daylight
 from datetime import datetime, timedelta
+from math import ceil as round_up
 
 import JSONTools
 from CommonAssets import GeneralFunctions as Gen_Tools, IRCMaps
@@ -43,8 +44,10 @@ class TwitchBot:
         self.irc_socket.send(bytes('PASS {0}\r\n'.format(self.settings.oauth), 'UTF-8'))
         self.irc_socket.send(bytes('NICK {0}\r\n'.format(self.settings.bot_name), 'UTF-8'))
         self.irc_socket.send(bytes('USER {0} {0} {0} :{0}\r\n'.format(self.settings.bot_name), 'UTF-8'))
+        oauth_halved = self.settings.oauth.replace(self.settings.oauth[int(round_up(
+            len(self.settings.oauth)/2.0)):], '*' * int(len(self.settings.oauth)/2.0))
         self.logger.info('Attempting to authenticate bot using:\n'
-                         '\tOAUTH: {0}\n\tNICK/USER: {1}'.format(self.settings.oauth, self.settings.bot_name))
+                         '\tOAUTH: {0}\n\tNICK/USER: {1}'.format(oauth_halved, self.settings.bot_name))
 
     def join(self):
         self.irc_socket.send(bytes('CAP REQ :twitch.tv/membership\r\n', 'UTF-8'))
