@@ -14,8 +14,8 @@ class IRCMaps(object):
 
 
 class BotSettings(object):
-    def __init__(self, host=None, port=None, oauth=None, bot_name=None,
-                 channel=None, command_limit=None, master_access=None, start_time=None):
+    def __init__(self, host=None, port=None, oauth=None, bot_name=None, channel=None,
+                 command_limit=None, master_access=None, start_time=None, verbose_logs=None):
         self.host = host
         self.port = port
         self.oauth = oauth
@@ -23,6 +23,7 @@ class BotSettings(object):
         self.channel = channel
         self.command_limit = command_limit
         self.master_access = master_access
+        self.verbose_logs = verbose_logs
         self.start_time = start_time
 
 
